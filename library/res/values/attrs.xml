@@ -30,6 +30,12 @@
         <!-- Drawable used for the drop shadow. -->
         <attr name="mdDropShadow" format="reference" />
 
+        <!-- The layout resource id to use for the menu -->
+        <attr name="mdMenuLayout" format="reference" />
+
+        <!-- The layout resource id to use for the content -->
+        <attr name="mdContentLayout" format="reference"/>
+
     </declare-styleable>
 
 </resources>

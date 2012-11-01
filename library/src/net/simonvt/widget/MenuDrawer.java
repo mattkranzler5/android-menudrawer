@@ -1,5 +1,6 @@
 package net.simonvt.widget;
 
+import android.view.*;
 import net.simonvt.menudrawer.R;
 
 import android.content.Context;
@@ -14,11 +15,6 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.VelocityTracker;
-import android.view.View;
-import android.view.ViewConfiguration;
-import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Interpolator;
 
@@ -325,6 +321,11 @@ public abstract class MenuDrawer extends ViewGroup {
     protected long mPeekDelay;
 
     /**
+     * The duration of the peek animation.
+     */
+    protected int mPeekDuration;
+
+    /**
      * Scroller used when animating the drawer open/closed.
      */
     private Scroller mScroller;
@@ -415,15 +416,28 @@ public abstract class MenuDrawer extends ViewGroup {
 
         mDropShadowWidth = a.getDimensionPixelSize(R.styleable.MenuDrawer_mdDropShadowWidth, dpToPx(6));
 
+        int menuLayoutResId = a.getResourceId(R.styleable.MenuDrawer_mdMenuLayout, -1);
+        int contentLayoutResId = a.getResourceId(R.styleable.MenuDrawer_mdContentLayout, -1);
+
         a.recycle();
 
         mMenuContainer = new BuildLayerFrameLayout(context);
-        mMenuContainer.setId(R.id.md__menu);
+        if (menuLayoutResId != -1) {
+            View menuLayout = LayoutInflater.from(context).inflate(menuLayoutResId, null);
+            mMenuContainer.addView(menuLayout);
+        } else {
+            mMenuContainer.setId(R.id.md__menu);
+        }
         mMenuContainer.setBackgroundDrawable(menuBackground);
         addView(mMenuContainer);
 
         mContentView = new NoClickThroughFrameLayout(context);
-        mContentView.setId(R.id.md__content);
+        if (contentLayoutResId != -1) {
+            View contentLayout = LayoutInflater.from(context).inflate(contentLayoutResId, null);
+            mContentView.addView(contentLayout);
+        } else {
+            mContentView.setId(R.id.md__content);
+        }
         mContentView.setBackgroundDrawable(contentBackground);
         addView(mContentView);
 
@@ -438,6 +452,8 @@ public abstract class MenuDrawer extends ViewGroup {
 
         mMaxTouchBezelWidth = dpToPx(MAX_DRAG_BEZEL_DP);
         mCloseEnough = dpToPx(CLOSE_ENOUGH);
+
+        mPeekDuration = PEEK_DURATION;
     }
 
     private int dpToPx(int dp) {
@@ -625,6 +641,14 @@ public abstract class MenuDrawer extends ViewGroup {
     public void setDropShadowWidth(int width) {
         mDropShadowWidth = width;
         invalidate();
+    }
+
+    /**
+     * Sets the duration of the peek
+     * @param peekDuration - The duration of the peek in ms
+     */
+    public void setPeekDuration(int peekDuration) {
+        mPeekDuration = peekDuration;
     }
 
     /**
@@ -985,7 +1009,7 @@ public abstract class MenuDrawer extends ViewGroup {
     protected void startPeek() {
         final int menuWidth = mMenuWidth;
         final int dx = menuWidth / 3;
-        mPeekScroller.startScroll(0, 0, dx, 0, PEEK_DURATION);
+        mPeekScroller.startScroll(0, 0, dx, 0, mPeekDuration);
 
         startLayerTranslation();
         peekDrawerInvalidate();
